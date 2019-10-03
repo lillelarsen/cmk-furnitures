@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: controllers/admin.products.controller.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: controllers/admin.products.controller.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const db = require('../config/mysql');
+const { deleteProduct } = require('../models/products.model');
+const { setPrimaryImage, unsetPrimaryImage, productImageRemove } = require('../models/images.model');
+const { refererRedirect } = require('../helpers/redirect.helper.js');
+/**
+ * @module controller/products
+ */
+
+ /**
+ * Denne funktion retunerer create-product.ejs
+ * @param {Object} req - Request-objektet returnerer værdier fra clientside
+ * @param {Function} res - Response-funktionen bruges til at give svar tilbage
+ * @param {Function} next - Next-funktionen kan bruges til videresendelse 
+ */
+exports.showProductCreateForm = async function(req, res, next) {
+    try {
+        const imagesSQL = `SELECT id, name FROM images`;
+        const [images] = await db.query(imagesSQL);
+
+        const categoriesSql = `SELECT categories.name, categories.id FROM categories`;
+        const [rows, fields] = await db.query(categoriesSql); 
+        res.render('admin/create-product', { 'images': images, 'title': 'Opret produkt', 'content': 'Opret produkt i formen', 'categories': rows});
+    } catch (error) {
+        console.log(error);
+        res.send("Kan ikke indlæse siden");
+    }
+}
+
+/**
+ * Denne funktion opretter med POST et product
+ * @param {Object} req - Request-objektet returnerer værdier fra clientside
+ * @param {Function} res - Response-funktionen bruges til at give svar tilbage
+ * @param {Function} next - Next-funktionen kan bruges til videresendelse 
+ */
+exports.createProduct = async function(req, res, next) {
+    if(req.fields.name == "") {
+        req.session.flash = { 
+            nameError:"Navn skal udfyldes",
+            name: req.fields.name,
+            description: req.fields.description,
+            price: req.fields.price,
+            year: req.fields.year,
+            itemNumber: req.fields.itemNumber        
+        };
+        res.redirect(refererRedirect());
+        return;
+    } 
+    if(req.fields.description == "") {
+        req.session.flash = { 
+            descriptionError:"Indhold skal udfyldes",
+            name: req.fields.name,
+            description: req.fields.description,
+            price: req.fields.price,    
+            year: req.fields.year,
+            itemNumber: req.fields.itemNumber    
+        };
+        res.redirect(refererRedirect());
+        return;
+    } 
+    if(req.fields.price == "") {
+        req.session.flash = { 
+            priceError:"Indhold skal udfyldes",
+            name: req.fields.name,
+            description: req.fields.description,  
+            price: req.fields.price,
+            year: req.fields.year,
+            itemNumber: req.fields.itemNumber      
+        };
+        res.redirect(refererRedirect());
+        return;
+    } 
+    if(req.fields.year == "") {
+        req.session.flash = { 
+            yearError:"Indhold skal udfyldes",
+            name: req.fields.name,
+            description: req.fields.description,  
+            price: req.fields.price,
+            year: req.fields.year,
+            itemNumber: req.fields.itemNumber      
+        };
+        res.redirect(refererRedirect());
+        return;
+    } 
+    if(req.fields.itemNumber == "") {
+        req.session.flash = { 
+            itemNumberError:"Indhold skal udfyldes",
+            name: req.fields.name,
+            description: req.fields.description,  
+            price: req.fields.price,
+            year: req.fields.year,
+            itemNumber: req.fields.itemNumber      
+        };
+        res.redirect(refererRedirect());
+        return;
+    } 
+    try {  
+        const productSQL = `INSERT INTO products SET name = :name, description = :description, price = :price, year = :year, item_number = :itemNumber,  fk_category = :category,  fk_designer = :designer`;
+        const [rows] = await db.query(productSQL, {name: req.fields.name, description: req.fields.description, price: req.fields.price, year: req.fields.year, itemNumber: req.fields.itemNumber, category: req.fields.category, designer: 1});
+        
+        if(req.fields.chooseImage != undefined) {
+            req.fields.chooseImage.forEach(async element => {
+                const imageSQL = `UPDATE images SET fk_product = :product,  fk_standard_img = :standard_img WHERE id = :id`;
+                const [imageRows] = await db.query(imageSQL, { id: element, product: rows.insertId, standard_img: 1});
+            });
+        }
+        res.redirect('/admin/products');
+    } catch (error) {
+        console.log(error);
+        res.send("Kan ikke oprette produkt");
+    }
+}
+
+/**
+ * Denne funktion retunerer products.ejs med data
+ * @param {Object} req - Request-objektet returnerer værdier fra clientside
+ * @param {Function} res - Response-funktionen bruges til at give svar tilbage
+ * @param {Function} next - Next-funktionen kan bruges til videresendelse 
+ */
+exports.getProducts = async function(req, res, next) {
+    let values = req.query;
+       
+    // bestem hvor mange elementer der skal vises pr side
+    let limit = Number(values.items) || 10;
+    // vi går som standard ud fra at det er den første side der skal vises
+    let current_page = 1;
+    // tjek at page findes i querystring og at det er et tal
+    if (values.page != undefined) {
+        if (parseInt(values.page) &lt; 1) {
+            res.redirect('/admin/products');
+            return;
+        }
+        if (parseInt(values.page) >= 1) {
+            current_page = parseInt(values.page);
+        }
+    }
+    // find ud af hvor mange produkter der er i databasen
+    let [result] = await db.execute('SELECT COUNT(*) AS total_items FROM products');
+    let total_items = result[0].total_items;
+
+    // beregn hvor mange produkter der skal springes over 
+    // for at vise den pågældende side
+    let offset = (current_page - 1) * limit;
+
+    // beregn hvor mange sider der er i alt, 
+    // baseret på antal elementer og elementer pr side
+    let total_pages = Math.ceil(total_items / limit);
+
+    // hvis "offset" er større end totalle antal items, så indlæses den sidste side
+    if (offset > total_items) {
+        res.redirect(`/admin/products?page=${total_pages}&amp;items=${limit}`);
+        return;
+    }
+    try {
+        const userSql = `SELECT products.id, products.name, products.description, products.price, products.year, products.item_number, categories.name AS category 
+                        FROM products 
+                        INNER JOIN categories ON products.fk_category = categories.id
+                        ORDER BY products.name
+                        LIMIT :productlimit OFFSET :productoffset`;
+        const [rows, fields] = await db.query(userSql, {productlimit: limit, productoffset: offset});
+
+        res.render('admin/products', { 
+            'title': 'Produkter', 
+            'content': 'en liste over produkter', 
+            'products': rows,
+            'total_pages': total_pages,
+            'current_page': current_page,
+            'itemsPerPage': limit
+        });
+    } catch (error) {
+        console.log(error);
+        res.send("Kan ikke hente produkter");
+    }
+}
+
+/**
+ * Denne funktion retunerer edit-product.ejs med data
+ * @param {Object} req - Request-objektet returnerer værdier fra clientside
+ * @param {Function} res - Response-funktionen bruges til at give svar tilbage
+ * @param {Function} next - Next-funktionen kan bruges til videresendelse 
+ */
+exports.showProductForm = async function(req, res, next) {
+    try {
+        const userSQL = `SELECT products.id AS productId, products.name, products.description, products.fk_category, products.price, products.year, products.item_number, categories.name AS category, categories.id AS categoryId FROM products 
+                        INNER JOIN categories ON products.fk_category = categories.id
+                        WHERE products.id = :id`;
+        const [userRows] = await db.query(userSQL, {id: req.params.id});
+
+
+        const imagesSQL = `SELECT id, name, fk_product FROM images`;
+        const [images] = await db.query(imagesSQL);
+
+        const selectedSQL = `SELECT id, name, fk_standard_img FROM images WHERE fk_product = :id`;
+        const [selected] = await db.query(selectedSQL, {id: req.params.id});
+
+        const categorySQL = `SELECT id, name, description FROM categories`;
+        const [categoryRows] = await db.query(categorySQL);
+        res.render('admin/edit-product', { 'images': images, 'title': 'Redigér', 'content': 'Redigér kategorien', 'product': userRows[0], 'categories': categoryRows, 'selected' : selected  });
+    } catch (error) {
+        console.log(error);
+        res.send("Kan ikke finde bruger");
+    }
+}
+
+/**
+ * Denne funktion opdaterer product data
+ * @param {Object} req - Request-objektet returnerer værdier fra clientside
+ * @param {Function} res - Response-funktionen bruges til at give svar tilbage
+ * @param {Function} next - Next-funktionen kan bruges til videresendelse 
+ */
+exports.editProduct = async function(req, res, next) {
+    if(req.fields.name == "") {
+        req.session.flash = { 
+            nameError:"Navn skal udfyldes",
+            name: req.fields.name,
+            description: req.fields.description,
+            price: req.fields.price,
+            year: req.fields.year,
+            itemNumber: req.fields.itemNumber        
+        };
+        res.redirect(refererRedirect());
+        return;
+    } 
+    if(req.fields.description == "") {
+        req.session.flash = { 
+            descriptionError:"Indhold skal udfyldes",
+            name: req.fields.name,
+            description: req.fields.description,
+            price: req.fields.price,    
+            year: req.fields.year,
+            itemNumber: req.fields.itemNumber    
+        };
+        res.redirect(refererRedirect());
+        return;
+    } 
+    if(req.fields.price == "") {
+        req.session.flash = { 
+            priceError:"Indhold skal udfyldes",
+            name: req.fields.name,
+            description: req.fields.description,  
+            price: req.fields.price,
+            year: req.fields.year,
+            itemNumber: req.fields.itemNumber      
+        };
+        res.redirect(refererRedirect());
+        return;
+    } 
+    if(req.fields.year == "") {
+        req.session.flash = { 
+            yearError:"Indhold skal udfyldes",
+            name: req.fields.name,
+            description: req.fields.description,  
+            price: req.fields.price,
+            year: req.fields.year,
+            itemNumber: req.fields.itemNumber      
+        };
+        res.redirect(refererRedirect());
+        return;
+    } 
+    if(req.fields.itemNumber == "") {
+        req.session.flash = { 
+            itemNumberError:"Indhold skal udfyldes",
+            name: req.fields.name,
+            description: req.fields.description,  
+            price: req.fields.price,
+            year: req.fields.year,
+            itemNumber: req.fields.itemNumber      
+        };
+        res.redirect(refererRedirect());
+        return;
+    }  
+    try {
+        console.log(req.fields);
+        
+        const userSQL = `UPDATE products SET  name = :name, description = :description, price = :price, year = :year, item_number = :itemNumber,  fk_category = :category,  fk_designer = :designer WHERE id = :id`;
+        const user = await db.query(userSQL, {id: req.params.id, name: req.fields.name, description: req.fields.description, price: req.fields.price, year: req.fields.year, itemNumber: req.fields.itemNumber, category: req.fields.category, designer: 1});
+        
+        if(req.fields.chooseImage != undefined) {
+            req.fields.chooseImage.forEach(async element => {
+                const imageSQL = `UPDATE images SET fk_product = :product WHERE id = :id`;
+                const [imageRows] = await db.query(imageSQL, { id: element, product: req.params.id });
+            });
+        }
+
+        res.redirect('/admin/editProduct/' + req.params.id);
+    } catch (error) {
+        console.log(error);
+        res.send("Kan ikke opdatere brugere");
+    }
+}
+
+/**
+ * Denne funktion sletter product data
+ * @param {Object} req - Request-objektet returnerer værdier fra clientside
+ * @param {Function} res - Response-funktionen bruges til at give svar tilbage
+ * @param {Function} next - Next-funktionen kan bruges til videresendelse 
+ */
+exports.deleteProduct = async function(req, res, next) {
+    try {
+        const [delProduct] = await deleteProduct(req.params.id);
+        res.redirect('/admin/products');
+    } catch (error) {
+        console.log(error);
+        res.send("Kan ikke slette produkt");
+    }
+}
+
+/**
+ * Denne funktion sætter primary image til produktet
+ * @param {Object} req - Request-objektet returnerer værdier fra clientside
+ * @param {Function} res - Response-funktionen bruges til at give svar tilbage
+ * @param {Function} next - Next-funktionen kan bruges til videresendelse 
+ */
+exports.setPrimaryImage = async function(req, res, next) {
+    try { 
+        const [unset] = await unsetPrimaryImage(refererRedirect().split('/').pop())
+        const [set] = await setPrimaryImage(req.fields.primaryImg);
+        res.redirect(refererRedirect());
+    } catch (error) {
+        return next(error);
+    }
+}
+
+/**
+ * Denne funktion sletter image til produktet
+ * @param {Object} req - Request-objektet returnerer værdier fra clientside
+ * @param {Function} res - Response-funktionen bruges til at give svar tilbage
+ * @param {Function} next - Next-funktionen kan bruges til videresendelse 
+ */
+exports.productImageRemove = async function(req, res, next) {
+    try { 
+        const [remove] = await productImageRemove(req.params.id);
+        res.redirect(refererRedirect());
+    } catch (error) {
+        return next(error);
+    }
+}
+
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-controller_admin-main.html">controller/admin-main</a></li><li><a href="module-controller_articles.html">controller/articles</a></li><li><a href="module-controller_categories.html">controller/categories</a></li><li><a href="module-controller_contact.html">controller/contact</a></li><li><a href="module-controller_designers.html">controller/designers</a></li><li><a href="module-controller_home.html">controller/home</a></li><li><a href="module-controller_images.html">controller/images</a></li><li><a href="module-controller_login.html">controller/login</a></li><li><a href="module-controller_newsletter.html">controller/newsletter</a></li><li><a href="module-controller_products.html">controller/products</a></li><li><a href="module-controller_roles.html">controller/roles</a></li><li><a href="module-controller_signup.html">controller/signup</a></li><li><a href="module-controller_users.html">controller/users</a></li><li><a href="module-Model_articles.html">Model/articles</a></li><li><a href="module-Model_categories.html">Model/categories</a></li><li><a href="module-Model_images.html">Model/images</a></li><li><a href="module-Model_products.html">Model/products</a></li><li><a href="module-route_Articles.html">route/Articles</a></li><li><a href="module-route_categories.html">route/categories</a></li><li><a href="module-route_contact.html">route/contact</a></li><li><a href="module-route_designers.html">route/designers</a></li><li><a href="module-route_main.html">route/main</a></li><li><a href="module-route_profile.html">route/profile</a></li><li><a href="module-route_roles.html">route/roles</a></li><li><a href="module-route_signup.html">route/signup</a></li><li><a href="module-route_users.html">route/users</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Sep 19 2019 07:40:04 GMT+0200 (GMT+02:00)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+<% include ./partials/head.ejs %>
+<% include ./partials/header.ejs %>
+<% include ./partials/navigation.ejs %>
+<main class="main">
+    <article>
+        <h1>Besked fra <%= message.email %></h1>
+        <p><%= message.name %></p>
+        <p><%= message.adress %></p>
+        <p><%= message.phone %></p>
+        <p><%= message.message %></p>
+    </article>
+    <a class="btn" href="/admin/deleteMessage/<%= message.id %>">Slet</a>       
+</main>
+<% include ./partials/footer.ejs %>
+<% include ./partials/after-footer.ejs %>

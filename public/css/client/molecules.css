@@ -1,0 +1,76 @@
+.product {
+    width: 100%;
+    margin: 2em;
+    display: grid;
+    grid-template-columns: 122px 1fr;
+    grid-template-rows: 20px 1fr;
+    grid-gap: 0.5em;
+    justify-content: space-between;
+    cursor: pointer;
+}
+
+.product-view {
+    display: grid;
+    grid-template-columns: 300px 150px;
+    grid-template-rows: 20px 1fr;
+    grid-column-gap: 2em;
+}
+.image-view {
+    grid-column: 1/2;
+    grid-row: 2/3;
+}
+.image-slide {
+    display: flex;
+    justify-content: space-between;
+    padding: 1em;
+}
+.product-specs {
+    grid-column: 2/3;
+    grid-row: 3/4;
+}
+.aside-section {
+    margin: 2em 0 0 0;
+    padding: 1em 0;
+    width: 90%;
+}
+
+.news-letter {
+    display: flex;
+    flex-direction: column;
+    padding: 1em 0 0 1em;
+}
+
+.aside-product {
+    padding: 1em 0 0 1em;
+}
+.main-title-contain {
+    margin: 2em 7em 0 0;
+    border-bottom: dotted var(--secondary-text) 2px;
+    width: 90%;
+}
+
+.search-price,
+.search-year {
+    display: flex;
+    flex-flow: row wrap;
+}
+
+.specific-product-search {
+    display: flex;
+    height: 2em;
+    width: 22em;
+    align-items: baseline;
+    justify-content: space-between;
+}
+
+@media only screen and (min-width: 1000px) {
+    .main-title-contain {
+        width: 20em;
+    }
+    .main-dots {
+        width: 70em;
+        margin-top: 2em;
+        border-bottom: dotted var(--secondary-text) 2px;
+    }
+    
+}

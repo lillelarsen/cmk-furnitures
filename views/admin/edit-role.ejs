@@ -1,0 +1,30 @@
+<% include ./partials/head.ejs %>
+<% include ./partials/header.ejs %>
+<% include ./partials/navigation.ejs %>
+<main class="main">
+        <h1 class="main-title"><%= title %></h1>
+    <form method="post" class="edit-role">
+        <fieldset>
+            <label for="name">Navn</label>
+            <input type="text" name="name" id="name" value="<%= role.name %>">
+            <span id="nameError" style="color: red;">
+                <%= (messages && messages.nameError) ? messages.nameError : "" %>
+            </span>
+        </fieldset>
+        <fieldset>
+            <label for="level">level</label>
+            <input name="level" id="level" value="<%= role.level %>">
+            <span id="levelError" style="color: red;">
+                <%= (messages && messages.levelError) ? messages.levelError : "" %>
+            </span>
+        </fieldset>
+        <button type="submit">Gem</button>
+    </form>
+</main>
+<script src="/scripts/validator.js"></script>
+<script>
+    jsb.validationEmpty('.edit-role', '#name', 'Udfyld venligst titel!', '#nameError');
+    jsb.validationEmpty('.edit-role', '#level', 'Udfyld venligst level!', '#levelError');
+</script>
+<% include ./partials/footer.ejs %>
+<% include ./partials/after-footer.ejs %>

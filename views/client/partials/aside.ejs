@@ -1,0 +1,37 @@
+<aside class="aside">
+    <section class="aside-section aside-product">
+    <% if(typeof randomProduct == "undefined") { %>
+        <p>Ingen produkter</p>
+    <% } else { %>
+        <img class="aside-image" src="/images/uploads/<%= randomProduct.image %>" alt="">
+        <p>Møbel serie:</p>
+        <p><%= randomProduct.category %></p>
+        <p>Designer:</p>
+        <p><%= randomProduct.designer %></p>
+        <p>Design år:</p>
+        <p><%= randomProduct.year %></p>
+        <p>Pris:</p>
+        <p><%= randomProduct.price %></p>
+        <a href="/produkt/<%= randomProduct.id %>">mere info</a>
+    <% } %>
+    </section>
+    <section class="aside-section">
+        <h3>Tilmeld nyhedsbrev</h3>
+        <span class="success-message" style="color: green;">
+            <%= (messages && messages.success) ? messages.success : "" %>
+        </span>
+        <form class="news-letter" action="/subscribe" method="POST">
+            <label for="email" class="required">Email</label>
+            <input type="email" name="email" id="email">
+            <span id="error-message" style="color: red;">
+                <%= (messages && messages.subscribeError) ? messages.subscribeError : "" %>
+            </span>
+            <button type="submit">Tilmeld</button>
+            <button formaction="/deleteSubscription" type="submit">Frameld</button>
+        </form>
+    </section>
+</aside>
+<script src="/scripts/validator.js"></script>
+<script>
+    jsb.validationEmpty('.news-letter', '#email', 'Udfyld venligst email!', '#error-message');
+</script>

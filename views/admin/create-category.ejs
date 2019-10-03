@@ -1,0 +1,30 @@
+<% include ./partials/head.ejs %>
+<% include ./partials/header.ejs %>
+<% include ./partials/navigation.ejs %>
+<main class="main">
+        <h1 class="main-title"><%= title %></h1>
+    <form method="post" class="edit-category">
+        <fieldset>
+            <label for="name">Navn</label>
+            <input type="text" name="name" id="name" value="<%= (messages && messages.name) ? messages.name : "" %>">
+            <span id="nameError" style="color: red;">
+                <%= (messages && messages.nameError) ? messages.nameError : "" %>
+            </span>
+        </fieldset>
+        <fieldset>
+            <label for="description">description</label>
+            <textarea name="description" id="description"><%= (messages && messages.description) ? messages.description : "" %></textarea>
+            <span id="descriptionError" style="color: red;">
+                <%= (messages && messages.descriptionError) ? messages.descriptionError : "" %>
+            </span>
+        </fieldset>
+        <button type="submit">Gem</button>
+    </form>
+</main>
+<script src="/scripts/validator.js"></script>
+<script>
+    jsb.validationEmpty('.edit-category', '#name', 'Udfyld venligst titel!', '#nameError');
+    jsb.validationEmpty('.edit-category', '#description', 'Udfyld venligst beskrivelse!', '#descriptionError');
+</script>
+<% include ./partials/footer.ejs %>
+<% include ./partials/after-footer.ejs %>

@@ -1,0 +1,31 @@
+<% include ./partials/head.ejs %>
+<% include ./partials/header.ejs %>
+<% include ./partials/navigation.ejs %>
+<% include ./partials/main-header.ejs %>
+<% include ./partials/aside.ejs %>
+<main class="main">
+        <article class="product-view">
+                <h2 class="product-view-name"><%= product.name %></h2>
+                <div class="image-view">
+                        <div class="image-display">
+                                <img class="product-image" src="/images/uploads/<%= images[0].name %>" alt="">
+                        </div>
+                        <h4>Andre varianter</h4>
+                        <div class="image-slide">
+                                <% images.forEach((image) => { %>
+                                <img class="slide-image" src="/images/uploads/<%= image.name %>" alt="">
+                                <% }); %>
+                        </div>
+                </div>
+                <p class="product-view-description"><%= product.description %></p>
+                <div class="product-specs">
+                        <p class="spec-info">Pris:<span class="spec"> <%= product.price %> KKR.</span></p>
+                        <p class="spec-info">Designer:<span class="spec"> <%= product.designer %></span></p>
+                        <p class="spec-info">Møbelserie:<span class="spec"> <%= product.category %></span></p>
+                        <p class="spec-info">Design år:<span class="spec"> <%= product.year %></span></p>
+                        <p class="spec-info">Varenummer:<span class="spec"> <%= product.item_number %></span></p>
+                </div>
+        </article>
+</main>
+<% include ./partials/footer.ejs %>
+<% include ./partials/after-footer.ejs %>

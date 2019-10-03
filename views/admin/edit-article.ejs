@@ -1,0 +1,33 @@
+<% include ./partials/head.ejs %>
+<% include ./partials/header.ejs %>
+<% include ./partials/navigation.ejs %>
+<main class="main">
+        <h1 class="main-title"><%= title %></h1>
+        <span id="success" style="color: green;">
+            <%= (messages && messages.success) ? messages.success : "" %>
+        </span>
+    <form method="post" class="edit-article">
+        <fieldset>
+            <label for="name">Titel</label>
+            <input type="text" name="name" id="name" value="<%= article.name %>">
+            <span id="nameError" style="color: red;">
+                <%= (messages && messages.nameError) ? messages.nameError : "" %>
+            </span>
+        </fieldset>
+        <fieldset>
+            <label for="content">Indhold</label>
+            <textarea name="content" id="content"><%= article.content %></textarea>
+            <span id="contentError" style="color: red;">
+                <%= (messages && messages.contentError) ? messages.contentError : "" %>
+            </span>
+        </fieldset>
+        <button type="submit">Gem</button>
+    </form>
+</main>
+<script src="/scripts/validator.js"></script>
+<script>
+    jsb.validationEmpty('.edit-article', '#name', 'Udfyld venligst titel!', '#nameError');
+    jsb.validationEmpty('.edit-article', '#content', 'Skriv venligst noget indhold!', '#contentError');
+</script>
+<% include ./partials/footer.ejs %>
+<% include ./partials/after-footer.ejs %>

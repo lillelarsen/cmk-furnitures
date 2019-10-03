@@ -1,0 +1,28 @@
+    <nav class="navigation">
+        <ul class="navigation-list">
+            <li class="navigation-item">
+                <a class="navigation-link" href="/">Forside</a>
+            </li>
+            <li class="navigation-item">
+                <a class="navigation-link" href="/nyheder">Nyhedsarkiv</a>
+            </li>
+            <li class="navigation-item">
+                <a class="navigation-link" href="/produkter?page=1&items=10">Møbler</a>
+            </li>
+            <li class="navigation-item">
+                <a class="navigation-link" href="/kontakt">Kontakt</a>
+            </li>
+        </ul>
+    </nav>
+
+    <script>
+    var btns = document.getElementsByClassName('navigation-link');
+
+    for (var i = 0; i < btns.length; i++) {
+        btns[i].addEventListener("click", function() {
+            var current = document.getElementsByClassName("activelink");
+            current[0].className = current[0].className.replace(" activelink", "");
+            this.className += " activelink";
+        });
+    }
+    </script>

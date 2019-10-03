@@ -1,0 +1,43 @@
+<nav class="navigation">
+    <ul>
+        <li>
+            <a class="admin-link-text" href="/admin">Forside</a>
+        </li>
+        <hr>
+        <li>
+            <a class="admin-link-text" href="/admin/users">Brugere</a>
+        </li>
+        <li>
+            <a class="admin-link-text" href="/admin/roles">Roller</a>
+        </li>
+        <hr>
+        <li>
+            <a class="admin-link-text" href="/admin/products">Produkter</a>
+        </li>
+        <li>
+            <a class="admin-link-text" href="/admin/articles">Nyheder</a>
+        </li>
+        <li>
+            <a class="admin-link-text" href="/admin/messages">Kommentarer</a>
+        </li>
+        <hr>
+        <li>
+            <a class="admin-link-text" href="/admin/categories">Møbelserier</a>
+        </li>
+        <li>
+            <a class="admin-link-text" href="/admin/designers">Designers</a>
+        </li>
+        <hr>
+        <li>
+            <a class="admin-link-text" href="/admin/images">Media</a>
+        </li>
+
+        <hr>
+        <li>
+            <%- isLoggedIn ? "<a href='/logout' class='btn'>Log ud</a>" : "<a class='btn' href='/login'>Log ind</a>" %>
+        </li>
+        <li>
+            <%- isLoggedIn ? "<a class='btn' href='/profile/'>Profil</a>" : "<a class='btn' href='/signup'>Registrér bruger</a>" %>
+        </li>
+    </ul>
+</nav>

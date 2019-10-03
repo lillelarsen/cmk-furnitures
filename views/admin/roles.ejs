@@ -1,0 +1,41 @@
+<% include ./partials/head.ejs %>
+<% include ./partials/header.ejs %>
+<% include ./partials/navigation.ejs %>
+<main class="main">
+        <h1 class="main-title"><%= title %></h1>
+    <table>
+        <thead>
+            <tr>
+                <th><a href="/admin/createRole" class="btn">Ny rolle</a></th>
+                <th>Navn</th>
+                <th>Level</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if(roles == 0) { %>
+                <p>Der er ingen roller at vise</p>
+            <tr>
+                <td>
+                    <a href="">Rediger</a>
+                    <a href="">Slet</a>
+                </td>
+                <td>-------</td>
+                <td>-------</td>
+            </tr>
+            <% } %>
+            <% roles.forEach(role => { %>
+            <tr>
+                <td>
+                    <a href="/admin/editRole/<%= role.id %>">Rediger</a>
+                    <a href="/admin/deleteRole/<%= role.id %>">Slet</a>
+                </td>
+                <td><%= role.name %></td>
+                <td><%= role.level %></td>
+            </tr>
+            <% }); %>
+        </tbody>
+    </table>
+</main>
+<% include ./partials/footer.ejs %>
+<% include ./partials/after-footer.ejs %>
+

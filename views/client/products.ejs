@@ -1,0 +1,87 @@
+<% include ./partials/head.ejs %>
+<% include ./partials/header.ejs %>
+<% include ./partials/navigation.ejs %>
+<% include ./partials/main-header.ejs %>
+<% include ./partials/aside.ejs %> 
+<main class="main">
+        <form class="specific-product-search" action="/specific-product" method="POST">
+            <fieldset>
+                <label for="name">Navn: </label>
+                <input type="text" name="name" id="name">
+            </fieldset>
+            <button type="submit">Søg</button>
+        </form>
+        <form method="get">
+            <fieldset class="category-input">
+                    <p class="search-category-header">Møbelserie:</p>
+                    <% categories.forEach(category => { %>
+                        <div class="category-checkbox">
+                            <input type="checkbox" name="category" value="<%= category.id %>">
+                            <label for="category"><%= category.name %></label>
+                        </div>
+                    <% }) %>
+            </fieldset>
+            <fieldset>
+                <label for="designer">Designer: </label>
+                <select name="designer" id="designer">
+                        <option value="" selected >Alle</option>
+                        <option value="1">Designer 1</option>
+                        <option value="2">Designer 2</option>
+                        <option value="3">Designer 3</option>
+                        <option value="4">Designer 4</option>
+                        <option value="5">Designer 5</option>
+                </select>
+            </fieldset>
+            <fieldset>
+                <div class="search-year" id="yearSearch">
+                    <p class="search-year-header">Design år:</p>
+                    <label for="minyearOutputId" id="minyearOutputLabel">min</label>
+                    <input type="number" id="minyearOutputId" min="1999" value="1999" max="<%= new Date().getFullYear();%>" name="minimumyear" class="year-input">
+                    <label for="maxyearOutputId" id="maxyearOutputLabel">max</label>
+                    <input type="number" id="maxyearOutputId" name="maximumyear" min="1999" max="<%= new Date().getFullYear();%>" value="2006" class="year-input">
+                </div>
+            </fieldset>
+            <fieldset>
+                <div class="search-price" id="priceSearch">
+                    <p class="search-price-header">Pris:</p>
+                    <label for="minPriceOutputId" id="minPriceOutputLabel">min</label>
+                    <input type="number" id="minPriceOutputId" min="0" value="0" max="99999" name="minimumprice" class="price-input">
+                    <label for="maxPriceOutputId" id="maxPriceOutputLabel">max</label>
+                    <input type="number" id="maxPriceOutputId" name="maximumprice" min="0" max="100000" value="10000" class="price-input">
+                </div>
+            </fieldset>
+            <input type="hidden" name="page" value="<%= page_number %>">
+            <input type="hidden" name="items" value="<%= itemsPerPage %>">
+            <button type="submit">Søg</button>
+            <a href="/produkter" class="btn">Nulstil</a>
+        </form>
+            <% if(products.length == 0) { %>
+                <p>Der er desværre ikke nogen emner der matcher dine kriterier. Vi anbefaler at du udvider din søgning og prøver igen.</p>
+            <% } %>
+            
+            <% include ./partials/pagination.ejs %>
+            <% products.forEach((product) => { %>
+                <article class="product">
+                    <img class="search-product-image" class="list-product-image" src="/images/uploads/120x90-<%= product.image %>" alt="">
+                    <h2 class="search-product-name"><%= product.name %></h2>
+                    <p class="search-product-description"><%= product.description %></p>
+                    <a hidden href="/produkt/<%= product.id %>">link</a>
+                </article>
+            <% }); %>
+            <% include ./partials/pagination.ejs %>
+</main>
+
+<script>
+let products = document.querySelectorAll('.product');
+
+products.forEach(product => {
+    product.addEventListener('click', () => {
+        const link = product.querySelector('a').href;
+        window.location.href = link;
+    })
+
+})
+</script>
+
+<% include ./partials/footer.ejs %>
+<% include ./partials/after-footer.ejs %>

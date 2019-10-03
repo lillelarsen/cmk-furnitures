@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: models/products.model.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: models/products.model.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const db = require('../config/mysql');
+/**
+ * @module Model/products
+ */
+
+exports.getOneProduct = async function(id) {
+    try {
+        const productSQL = `SELECT products.id AS id, products.name AS name, products.description, products.fk_category, price, year, item_number, designers.name AS designer, categories.name AS category,
+                            categories.name AS category, categories.id AS categoryId FROM products 
+                        INNER JOIN categories ON products.fk_category = categories.id
+                        INNER JOIN designers ON products.fk_designer = designers.id
+                        WHERE products.id = :id`;
+        return await db.query(productSQL, { id });
+    } catch (error) {
+        console.log(error);
+        return null;
+    }
+}
+exports.getProductByCategory = async function(id) {
+    try {
+        const productSQL = `SELECT products.id AS productid, products.name, products.description, products.fk_category, categories.name AS category, categories.id FROM products 
+        INNER JOIN categories ON products.fk_category = categories.id
+        WHERE products.fk_category = :id`;
+        return await db.query(productSQL, { id });
+    } catch (error) {
+        console.log(error);
+        return null;
+    }
+}
+exports.deleteProduct = async function(id) {
+    try {
+        const productSQL = `DELETE FROM products WHERE id = :id`;
+        return await db.query(productSQL, { id });
+    } catch (error) {
+        console.log(error);
+        return null;
+    }
+}
+
+exports.searchProduct = async function(fields) {
+    try {
+        let searchSQL = `SELECT products.id, products.name, products.description, products.price, products.year, designers.name AS designer, products.item_number, categories.name AS category, 
+                        (SELECT images.name FROM images WHERE products.id = images.fk_product LIMIT 1) AS image
+                        FROM products 
+                        INNER JOIN categories ON products.fk_category = categories.id
+                        INNER JOIN designers ON products.fk_designer = designers.id
+                        WHERE 1=1`;
+
+        let countSQL = `SELECT COUNT(*) AS total_items FROM products WHERE 1=1`;
+
+        // hent værdierne fra querystring
+    let values = fields;
+
+    // tjek alle de værdier vi ønsker at kunne benytte i søgningen
+    // sæt standard værdier hvis noget mangler
+    if (values.name == undefined) {
+        values.name = '';
+    }
+    if (values.category == undefined) {
+        values.category = '';
+    }
+    if (values.producent == undefined) {
+        values.producent = '';
+    }
+    if (values.globalsearch == undefined) {
+        values.globalsearch = '';
+    }
+    if (values.minimumprice == undefined || isNaN(values.minimumprice)) {
+        values.minimumprice = '';
+    }
+    if (values.maximumprice == undefined || isNaN(values.maximumprice)) {
+        values.maximumprice = '';
+    }
+    if (parseInt(values.minimumprice) > parseInt(values.maximumprice)) {
+        let temp = values.maximumprice;
+        values.maximumprice = values.minimumprice;
+        values.minimumprice = temp;
+    }
+    ////////////////////////////////////////////////////////////////////////
+    // bestem hvor mange elementer der skal vises pr side
+    if (values.items == undefined) {
+        values.items = 10;
+    }
+    let limit = parseInt(values.items) || 10;
+    // vi går som standard ud fra at det er den første side der skal vises
+    
+    let current_page = 1;
+    // tjek at page findes i querystring og at det er et tal
+    if (values.page != undefined) {
+        if (parseInt(values.page) &lt; 1) {
+            res.redirect('/produkter');
+            return;
+        }
+        if (parseInt(values.page) >= 1) {
+            current_page = parseInt(values.page);
+        }
+    }
+        // beregn hvor mange produkter der skal springes over 
+        // for at vise den pågældende side
+         let offset = (current_page - 1) * limit;
+ 
+         if(offset == '' &amp;&amp; offset == undefined) {
+             offset = 0;
+         }
+ 
+        // start params samlingen, den skal bare være tom til at starte med
+        let sql_params = []
+
+        if (values.name != undefined &amp;&amp; values.name != '') {
+            searchSQL += ' AND products.name LIKE ? ';
+            countSQL += ' AND products.name LIKE ? ';
+            sql_params.push('%' + values.name + '%');
+        }
+        if (values.globalsearch != undefined &amp;&amp; values.globalsearch != '') {
+            searchSQL += ' AND (products.name LIKE ? OR products.description LIKE ? )';
+            countSQL += ' AND (products.name LIKE ? OR products.description LIKE ? )';
+            sql_params.push('%' + values.globalsearch + '%');
+            sql_params.push('%' + values.globalsearch + '%');
+        }
+
+        if (Object.prototype.toString.call(values.category) === "[object array]") {
+            searchSQL += ` AND ( `;
+            sqlParts = [];
+
+            values.category.forEach(value => {
+                sqlParts.push(` (products.fk_category = ${value}) `);
+            });
+
+            searchSQL += sqlParts.join(' OR ')
+
+            searchSQL += ` ) `;
+
+            countSQL += ` AND ( `;
+            sqlPartsCount = [];
+
+            values.category.forEach(value => {
+                sqlPartsCount.push(` (products.fk_category = ${value}) `);
+            });
+
+            countSQL += sqlPartsCount.join(' OR ')
+
+            countSQL += ` ) `;
+        } else if (values.category != undefined &amp;&amp; values.category != '') {
+                searchSQL += ' AND products.fk_category = ? ';
+                countSQL += ' AND products.fk_category = ? ';
+                sql_params.push(parseInt(values.category));
+        }
+
+        if (values.producent != undefined &amp;&amp; values.producent != '') {
+            searchSQL += ' AND fk_producent_id = ? ';
+            countSQL += ' AND fk_producent_id = ? ';
+            sql_params.push(values.producent);
+        }
+        if (values.minimumprice != undefined &amp;&amp; values.minimumprice != '') {
+            searchSQL += ' AND products.price >= ? ';
+            countSQL += ' AND products.price >= ? ';
+            sql_params.push(parseInt(values.minimumprice));
+        }
+        if (values.maximumprice != undefined &amp;&amp; values.maximumprice != '') {
+            searchSQL += ' AND products.price &lt;= ? ';
+            countSQL += ' AND products.price &lt;= ? ';
+            sql_params.push(parseInt(values.maximumprice));
+        }
+
+        if (values.page != undefined &amp;&amp; values.page != '' &amp;&amp; values.items != undefined &amp;&amp; values.items != '') {
+            values.page = 1;
+            values.items = 10;
+        }
+
+        if (values.page != undefined &amp;&amp; values.page != '' &amp;&amp; values.items != undefined &amp;&amp; values.items != '') {
+            if (limit >= 0 &amp;&amp; offset >= 0) {
+                searchSQL += ' LIMIT ? OFFSET ? ';
+                sql_params.push(limit, offset);
+            }
+        }
+
+         // find ud af hvor mange produkter der er i databasen
+         let [result] = await db.execute(countSQL, sql_params);
+         console.log(result);
+         
+         let total_items = result[0].total_items;
+ 
+         // beregn hvor mange sider der er i alt, 
+         // baseret på antal elementer og elementer pr side
+         let total_pages = Math.ceil(total_items / limit);
+ 
+         // hvis "offset" er større end totalle antal items, så indlæses den sidste side
+         if (offset > total_items) {
+             res.redirect(`/produkter?page=${total_pages}&amp;items=${limit}`);
+             return;
+         }
+
+         const [rows] = await db.query(searchSQL, sql_params);
+         return {
+            rows,
+            total_pages,
+            current_page,
+            limit,
+            values
+         }
+        } catch (error) {
+            console.log(error);
+            return null;
+        }
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-controller_admin-main.html">controller/admin-main</a></li><li><a href="module-controller_articles.html">controller/articles</a></li><li><a href="module-controller_categories.html">controller/categories</a></li><li><a href="module-controller_contact.html">controller/contact</a></li><li><a href="module-controller_designers.html">controller/designers</a></li><li><a href="module-controller_home.html">controller/home</a></li><li><a href="module-controller_images.html">controller/images</a></li><li><a href="module-controller_login.html">controller/login</a></li><li><a href="module-controller_newsletter.html">controller/newsletter</a></li><li><a href="module-controller_products.html">controller/products</a></li><li><a href="module-controller_roles.html">controller/roles</a></li><li><a href="module-controller_signup.html">controller/signup</a></li><li><a href="module-controller_users.html">controller/users</a></li><li><a href="module-Model_articles.html">Model/articles</a></li><li><a href="module-Model_categories.html">Model/categories</a></li><li><a href="module-Model_images.html">Model/images</a></li><li><a href="module-Model_products.html">Model/products</a></li><li><a href="module-route_Articles.html">route/Articles</a></li><li><a href="module-route_categories.html">route/categories</a></li><li><a href="module-route_contact.html">route/contact</a></li><li><a href="module-route_designers.html">route/designers</a></li><li><a href="module-route_main.html">route/main</a></li><li><a href="module-route_profile.html">route/profile</a></li><li><a href="module-route_roles.html">route/roles</a></li><li><a href="module-route_signup.html">route/signup</a></li><li><a href="module-route_users.html">route/users</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Sep 19 2019 07:40:04 GMT+0200 (GMT+02:00)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

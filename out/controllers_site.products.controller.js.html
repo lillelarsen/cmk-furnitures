@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: controllers/site.products.controller.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: controllers/site.products.controller.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const db = require('../config/mysql');
+const { searchProduct, getProductByCategory, getOneProduct } = require('../models/products.model');
+const { getCategories } = require('../models/categories.model');
+const { showImageByProductId } = require('../models/images.model');
+/**
+ * @module controller/products
+ */
+
+ /**
+ * Denne funktion retunerer products.ejs med data/søgeværdier
+ * @param {Object} req - Request-objektet returnerer værdier fra clientside
+ * @param {Function} res - Response-funktionen bruges til at give svar tilbage
+ * @param {Function} next - Next-funktionen kan bruges til videresendelse 
+ */
+exports.searchProducts = async function(req, res, next) {    
+    try {       
+        const result = await searchProduct(req.query);
+        const [categoryRows] = await getCategories();
+        res.render('client/products', { 
+            'title': 'Produkter', 
+            'content': 'en liste over produkter', 
+            'products': result.rows,
+            'categories': categoryRows,
+            'total_pages': result.total_pages,
+            'current_page': result.current_page,
+            'itemsPerPage': result.limit,
+            'page_number': result.values.page,
+            'name': result.values.name,
+            'globalsearch': result.values.globalsearch,
+            'category': result.values.category,
+            'minimumprice': result.values.minimumprice,
+            'maximumprice': result.values.maximumprice
+        });
+    } catch (error) {
+        console.log(error);
+        res.send("Kan ikke finde resultater");
+    }
+}
+
+/**
+ * Denne funktion retunerer product.ejs med data
+ * @param {Object} req - Request-objektet returnerer værdier fra clientside
+ * @param {Function} res - Response-funktionen bruges til at give svar tilbage
+ * @param {Function} next - Next-funktionen kan bruges til videresendelse 
+ */
+exports.showProduct = async function(req, res, next) {
+    try {
+        const [productRows] = await getOneProduct(req.params.id);
+        const [imageRows] = await showImageByProductId(req.params.id);
+        res.render('client/product', { 'title': 'Møbler', 'name': productRows[0].name, 'product': productRows[0], 'images': imageRows });
+    } catch (error) {
+        console.log(error);
+        res.send("Kan ikke finde bruger");
+    }
+}
+
+/**
+ * Denne funktion retunerer categories-list.ejs eller categories.ejs med data
+ * @param {Object} req - Request-objektet returnerer værdier fra clientside
+ * @param {Function} res - Response-funktionen bruges til at give svar tilbage
+ * @param {Function} next - Next-funktionen kan bruges til videresendelse 
+ */
+exports.showCategory = async function(req, res, next) {
+    try {
+        const [userRows] = await getProductByCategory(req.params.id);
+        const [categoryRows] = await getCategories();
+
+        if(req.params.id == 0 || req.params.id == 'undefined') {
+            res.render('client/categories', { 'title': 'Redigér', 'content': 'Redigér kategorien','categories': categoryRows  });
+        } else {
+            res.render('client/categories-list', { 'title': 'Redigér', 'content': 'Redigér kategorien', 'products': userRows, 'categories': categoryRows  });
+        }
+    } catch (error) {
+        console.log(error);
+        res.send("Kan ikke finde bruger");
+    }
+}
+
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-controller_admin-main.html">controller/admin-main</a></li><li><a href="module-controller_articles.html">controller/articles</a></li><li><a href="module-controller_categories.html">controller/categories</a></li><li><a href="module-controller_contact.html">controller/contact</a></li><li><a href="module-controller_designers.html">controller/designers</a></li><li><a href="module-controller_home.html">controller/home</a></li><li><a href="module-controller_images.html">controller/images</a></li><li><a href="module-controller_login.html">controller/login</a></li><li><a href="module-controller_newsletter.html">controller/newsletter</a></li><li><a href="module-controller_products.html">controller/products</a></li><li><a href="module-controller_roles.html">controller/roles</a></li><li><a href="module-controller_signup.html">controller/signup</a></li><li><a href="module-controller_users.html">controller/users</a></li><li><a href="module-Model_articles.html">Model/articles</a></li><li><a href="module-Model_categories.html">Model/categories</a></li><li><a href="module-Model_images.html">Model/images</a></li><li><a href="module-Model_products.html">Model/products</a></li><li><a href="module-route_Articles.html">route/Articles</a></li><li><a href="module-route_categories.html">route/categories</a></li><li><a href="module-route_contact.html">route/contact</a></li><li><a href="module-route_designers.html">route/designers</a></li><li><a href="module-route_main.html">route/main</a></li><li><a href="module-route_profile.html">route/profile</a></li><li><a href="module-route_roles.html">route/roles</a></li><li><a href="module-route_signup.html">route/signup</a></li><li><a href="module-route_users.html">route/users</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Sep 19 2019 07:40:04 GMT+0200 (GMT+02:00)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

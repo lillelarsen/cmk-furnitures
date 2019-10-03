@@ -1,0 +1,38 @@
+<% include ./partials/head.ejs %>
+<% include ./partials/header.ejs %>
+<% include ./partials/navigation.ejs %>
+<main class="main">
+        <h1 class="main-title"><%= title %></h1>
+    <table>
+        <thead>
+            <tr>
+                <th><a href="/admin/createDesigner" class="btn">Ny designer</a></th>
+                <th>Navn</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if(designers == 0) { %>
+                <p>Der er ingen designere at vise</p>
+            <tr>
+                <td>
+                    <a href="">Rediger</a>
+                    <a href="">Slet</a>
+                </td>
+                <td>-------</td>
+            </tr>
+            <% } %>
+            <% designers.forEach(designer => { %>
+            <tr>
+                <td>
+                    <a href="/admin/editDesigner/<%= designer.id %>">Rediger</a>
+                    <a href="/admin/deleteDesigner/<%= designer.id %>">Slet</a>
+                </td>
+                <td><%= designer.name %></td>
+            </tr>
+            <% }); %>
+        </tbody>
+    </table>
+</main>
+<% include ./partials/footer.ejs %>
+<% include ./partials/after-footer.ejs %>
+

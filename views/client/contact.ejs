@@ -1,0 +1,53 @@
+<% include ./partials/head.ejs %>
+<% include ./partials/header.ejs %>
+<% include ./partials/navigation.ejs %>
+<% include ./partials/main-header.ejs %>
+<% include ./partials/aside.ejs %> 
+<main class="main">
+        <span id="success" style="color: green;">
+            <%= (messages && messages.success) ? messages.success : "" %>
+        </span>
+        <form class="contact-form" method="POST">
+            <fieldset>
+                <label class="contact-label required" for="name">Navn</label>
+                <input class="contact-input" type="text" name="name" id="name" value="<%= (messages && messages.name) ? messages.name : "" %>">
+                <span id="usernameError" style="color: red;">
+                    <%= (messages && messages.nameError) ? messages.nameError : "" %>
+                </span>
+            </fieldset>
+            <fieldset>
+                <label class="contact-label" for="adress">Adresse</label>
+                <input class="contact-input" type="text" name="adress" id="adress">
+            </fieldset>
+            <fieldset>
+                <label class="contact-label" for="phone">Telefon</label>
+                <input class="contact-input" type="text" name="phone" id="phone">
+            </fieldset>
+            <fieldset>
+                <label class="contact-label required" for="email">Email</label>
+                <input class="contact-input" type="text" name="email" id="email" value="<%= (messages && messages.email) ? messages.email : "" %>">
+                <span id="emailError" style="color: red;">
+                    <%= (messages && messages.emailError) ? messages.emailError : "" %>
+                </span>
+            </fieldset>
+            <fieldset>
+                <label class="contact-label required" for="message">Kommentar</label>
+                <textarea class="contact-textarea" name="message" rows="8" id="message"><%= (messages && messages.message) ? messages.message : "" %></textarea>
+                <span id="messageError" style="color: red;">
+                    <%= (messages && messages.messageError) ? messages.messageError : "" %>
+                </span>
+            </fieldset>
+
+            </fieldset>            
+            <button type="submit">Send</button>
+        </form>
+</main>
+<script src="/scripts/validator.js"></script>
+<script>
+    // New products validation
+    jsb.validationEmpty('.contact-form', '#name', 'Udfyld venligst navn!', '#usernameError');
+    jsb.validationEmpty('.contact-form', '#email', 'Udfyld venligst email!', '#emailError');
+    jsb.validationEmpty('.contact-form', '#message', 'Skriv venligst en besked!', '#messageError');
+</script>
+<% include ./partials/footer.ejs %>
+<% include ./partials/after-footer.ejs %>

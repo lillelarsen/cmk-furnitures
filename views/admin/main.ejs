@@ -1,0 +1,138 @@
+<% include ./partials/head.ejs %>
+<% include ./partials/header.ejs %>
+<% include ./partials/navigation.ejs %>
+<main class="main">
+        <h1 class="main-title"><%= title %></h1>
+    <form method="post" class="edit-globals">
+        <h2>Sitets indstillinger</h2>
+        <fieldset>
+            <label for="sitename">Navn</label>
+            <input type="text" name="sitename" id="sitename" value="<%= global.sitename %>">
+            <span id="sitenameError" style="color: red;">
+                <%= (messages && messages.sitenameError) ? messages.sitenameError : "" %>
+            </span>
+        </fieldset>
+        <fieldset>
+            <label for="sitedescription">Sitets beskrivelse</label>
+            <textarea name="sitedescription" id="sitedescription"><%= global.sitedescription %></textarea>
+            <span id="sitedescriptionError" style="color: red;">
+                <%= (messages && messages.sitedescriptionError) ? messages.sitedescriptionError : "" %>
+            </span>
+        </fieldset>
+        <fieldset>
+            <label for="street">Vej/Gade</label>
+            <input name="street" id="street" value="<%= global.street %>">
+            <span id="streetError" style="color: red;">
+                <%= (messages && messages.streetError) ? messages.streetError : "" %>
+            </span>
+        </fieldset>
+        <fieldset>
+            <label for="streetNumber">Nummer</label>
+            <input name="streetNumber" id="streetNumber" value="<%= global.street_number %>">
+            <span id="streetNumberError" style="color: red;">
+                <%= (messages && messages.streetNumberError) ? messages.streetNumberError : "" %>
+            </span>
+        </fieldset>
+        <fieldset>
+            <label for="postalCode">Postnummer</label>
+            <input name="postalCode" id="postalCode" value="<%= global.postal_code %>">
+            <span id="postalCodeError" style="color: red;">
+                <%= (messages && messages.postalCodeError) ? messages.postalCodeError : "" %>
+            </span>
+        </fieldset>
+        <fieldset>
+            <label for="city">By</label>
+            <input name="city" id="city" value="<%= global.city %>">
+            <span id="cityError" style="color: red;">
+                <%= (messages && messages.cityError) ? messages.cityError : "" %>
+            </span>
+        </fieldset>
+        <fieldset>
+            <label for="phone">Telefon</label>
+            <input name="phone" id="phone" value="<%= global.phone %>">
+            <span id="phoneError" style="color: red;">
+                <%= (messages && messages.phoneError) ? messages.phoneError : "" %>
+            </span>
+        </fieldset>
+        <fieldset>
+            <label for="telefax">Telefax</label>
+            <input name="telefax" id="telefax" value="<%= global.telefax %>">
+            <span id="telefaxError" style="color: red;">
+                <%= (messages && messages.telefaxError) ? messages.telefaxError : "" %>
+            </span>
+        </fieldset>
+        <fieldset>
+            <label for="email">E-mail</label>
+            <input name="email" id="email" value="<%= global.email %>">
+            <span id="emailError" style="color: red;">
+                <%= (messages && messages.emailError) ? messages.emailError : "" %>
+            </span>
+        </fieldset>
+        <button type="submit">Gem</button>
+    </form>
+    <h2>Åbningstider</h2>
+    <% openingHours.forEach(openingHour => { %>
+        <form action="/openingHours/" method="post">
+            <p><%= openingHour.weekday %></p>
+            <label for="opens">Åbner:</label>
+            <input type="time" name="opens" id="opens" value="<%= openingHour.opens %>">
+            <label for="closing">Lukker:</label>
+            <input type="time" name="closing" id="closing" value="<%= openingHour.closing %>">
+            <label for="closed">Lukket:</label>
+            <input type="checkbox" name="closed" id="closed" >
+        </form>
+    <% }) %>
+</main>
+<script src="/scripts/validator.js"></script>
+<script>
+    jsb.validationEmpty('.edit-globals', '#sitename', 'Udfyld venligst titel!', '#sitenameError');
+    jsb.validationEmpty('.edit-globals', '#sitedescription', 'Udfyld venligst beskrivelse!', '#sitedescriptionError');
+    jsb.validationEmpty('.edit-globals', '#street', 'Udfyld venligst vej!', '#streetError');
+    jsb.validationEmpty('.edit-globals', '#streetNumber', 'Udfyld venligst nummer!', '#streetNumberError');
+    jsb.validationEmpty('.edit-globals', '#postalCode', 'Udfyld venligst postnummer!', '#postalCodeError');
+    jsb.validationEmpty('.edit-globals', '#city', 'Udfyld venligst by!', '#cityError');
+    jsb.validationEmpty('.edit-globals', '#phone', 'Udfyld venligst telefon!', '#phoneError');
+    jsb.validationEmpty('.edit-globals', '#telefax', 'Udfyld venligst telefax!', '#telefaxError');
+    jsb.validationEmpty('.edit-globals', '#email', 'Udfyld venligst email!', '#emailError');
+</script>
+<script>
+const logoInput = document.querySelector('.sitelogoChange');
+logoInput.addEventListener('change', function (event) {
+	const formData = new FormData();
+    formData.append('photo', this.files[0]);    
+    formData.append('prevImg', this.dataset.currentImage);
+    
+	fetch('/admin/sitelogo', {
+		method: 'PATCH',
+		body: formData
+	})
+		.then(response => {
+			if (response.status === 200) return response.json();
+		})
+		.then(data => {
+			window.location.href = "/admin";
+		});
+});
+</script>
+
+<script>
+    const mainImageInput = document.querySelector('.mainimageChange');
+    mainImageInput.addEventListener('change', function (event) {
+        const formData = new FormData();
+        formData.append('photo', this.files[0]);    
+        formData.append('prevImg', this.dataset.currentImage);
+        
+        fetch('/admin/mainimage', {
+            method: 'PATCH',
+            body: formData
+        })
+            .then(response => {
+                if (response.status === 200) return response.json();
+            })
+            .then(data => {
+                window.location.href = "/admin";
+            });
+    });
+</script>
+<% include ./partials/footer.ejs %>
+<% include ./partials/after-footer.ejs %>

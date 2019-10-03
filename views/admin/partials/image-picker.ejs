@@ -1,0 +1,63 @@
+<div class="choosen-image">
+    <a href="" class="btn imagePopUp">Mediabibliotek</a>
+    
+</div>
+
+<div class="image-picker">
+    <a class="closePicker" href="">X</a>
+    <% if(images.length == 0) { %>
+        <p>Ingen billeder i systemet, <a href="/admin/images">upload billeder til systemet</a></p>
+    <% } %>
+        <div class="show-images">
+            <% images.forEach(image => { %>
+                <% if(image.fk_product === product.productId) {  %>
+                    <div class="used-image-container">
+                        <img class="used-image" src="/images/uploads/<%= image.name %>" alt="">
+                        <p class="used-image-text">Tilhører andet produkt</p>
+                    </div>
+                <% } else { %>
+                <div class="available-image-container">
+                    <label class="image-pick" for="<%= image.id %>">
+                        <img class="available-image" src="/images/uploads/<%= image.name %>" alt="">
+                        <input class="imageCheckers available-image-input" type="checkbox" name="chooseImage" id="<%= image.id %>" value="<%= image.id %>" data-imgname="<%= image.name %>">
+                    </label>
+                </div>
+                <% } %>
+            <% }); %>
+        </div>
+
+</div>
+
+<script>
+    const imagePopUp = document.querySelector('.imagePopUp');
+
+    imagePopUp.addEventListener('click', (e) => {
+        e.preventDefault();
+        imageList.classList.add('show');        
+    });
+
+    const imageList = document.querySelector('.image-picker');
+
+    const images = document.querySelectorAll('.imageCheckers');
+    const showImages = document.querySelector('.choosen-image');
+
+        for (let i = 0; i < images.length; i++) {
+
+            images[i].addEventListener('click', () => {                
+                if(images[i].checked == true) {
+                    const choosenImage = document.createElement('img');
+                    choosenImage.src = `/images/uploads/${images[i].dataset.imgname}`;
+                    choosenImage.setAttribute('class', 'imagePreview');
+                    choosenImage.setAttribute('data-standard', '0');
+                    showImages.appendChild(choosenImage);
+                }
+            })
+            
+        }
+    const close = document.querySelector('.closePicker');
+    close.addEventListener('click', (e) => {
+        e.preventDefault();
+        imageList.classList.remove('show');
+    })
+    
+</script>
